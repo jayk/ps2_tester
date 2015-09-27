@@ -106,14 +106,15 @@ var commands = {
         "send": [
             ["byd_tapping", 0x02],
             ["byd_edge_scrolling", 0x04],
-            ["byd_button_disable", 0x00],
-            ["byd_button_control", 0x04],
+            ["byd_button_options", 0x00],
+            ["byd_button_options", 0x04],
             ["byd_handedness", 0x01],
             ["byd_edge_motion", 0x01],
             ["byd_touch_sensitivity", 0x04],
             ["byd_two_finger_scroll", 0x03],
             ["byd_two_finger_options", 0x01],
-            ["byd_gestures_enabled", 0x01]
+            ["byd_gestures_enabled", 0x01],
+            "set_scaling_double"
         ],
         expect: []
     },
@@ -203,12 +204,6 @@ var commands = {
         "description": "Set scaling mode to normal",
         "send": [0xE7],
         "expect": [0xFA]
-    },
-    "byd_button_disable": {
-        "description": "Enable or disable click-button",
-        "args": { "0" : "normal", '8': "disabled"},
-        "send": [0xd0], // arg: 0 = normal, 8 = disabled
-        "expect": [0xFA, 0xFA]
     },
     "byd_tapping": {
         "description": "Enable or disable tapping",
@@ -324,9 +319,9 @@ var commands = {
         "send": [0xd1], // arg: 0 = off, 2 = on
         "expect": [0xFA, 0xFA]
     },
-    "byd_button_control": {
+    "byd_button_options": {
         "description": "Control how touchpad button is interpreted",
-        "args": { "4": "Normal", "5": "Left as gesture", "6": "Right as gesture", "7": "Both as Gesture"},
+        "args": { "0" : "reset", "4": "Normal left-click", "5": "Left as gesture", "6": "Right as gesture", "7": "Both as Gesture", '8': "disabled", },
         "send": [0xd0], // 4 == normal, 5 = left-as-gesture, 6 = right-as-gesture, 7 = both-corners-as-gesture
         "expect": [0xFA, 0xFA]
     },
