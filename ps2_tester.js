@@ -1,3 +1,4 @@
+#!/usr/bin/env node 
 /*
  * ps2_tester.js - PS/2 Touchpad configuration and debugging tool
  *
