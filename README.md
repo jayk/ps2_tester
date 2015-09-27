@@ -15,7 +15,9 @@ This program requires node.js - Any node.js after 0.11 should work.
 In order to use this command, you must switch the mouse into serio_raw mode.
 You can do this by running the `enable_ps2_serio_raw.sh` command with an
 argument of 1. Running the command again with an argument of 0 will restore
-the device as a PS2 mouse.  Note that switching into serio_raw mode will
+the device as a PS2 mouse.  Running the command repeatedly will increment
+the serio_raw# device number, so you may have to `ls /dev/serio_raw*` to
+find the device that was created. Note that switching into serio_raw mode will
 prevent the device from acting as a cursor, so it's a good idea to have a
 regular mouse plugged in.  
 
