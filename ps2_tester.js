@@ -1,4 +1,4 @@
-#!/usr/bin/env node 
+#!/usr/bin/env node
 /*
  * ps2_tester.js - PS/2 Touchpad configuration and debugging tool
  *
@@ -176,7 +176,7 @@ var commands = {
     "read_data": {
         "description": "Reads touchpad cursor position (only valid in remote mode)",
         "send": [0xEB],
-        "expect": [0xFA]
+        "expect": [0xFA, "*", "*", "*", "*"]
     },
     "set_stream_mode": {
         "description": "Places touchpad in stream mode (use start_reporting to begin)",
@@ -192,7 +192,7 @@ var commands = {
         "description": "Set touchpad resolution",
         "args": { "0": "1 count/mm", "1": "2 counts/mm", "2": "4 counts/mm", "3": "8 counts/mm" },
         "send": [0xE8],
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "set_scaling_double": {
         "description": "Enable double scaling mode",
@@ -208,127 +208,127 @@ var commands = {
         "description": "Enable or disable click-button",
         "args": { "0" : "normal", '8': "disabled"},
         "send": [0xd0], // arg: 0 = normal, 8 = disabled
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_tapping": {
         "description": "Enable or disable tapping",
         "args": { "1": "on", "2": "off"},
         "send": [0xd4], // arg: 1 = on, 2 = off
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_handedness": {
         "description": "Set right or left handedness",
         "args": { "1": "Right Handed", "2": "left handed"}, // arg: 1 = right handed, 2 = left handed
         "send": [0xd3],
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_tapdrag": {
         "description": "Configure tap & drag",
         "args": { "1": "Drag", "2": "Drag Lock", "3": "Disabled"},
         "send": [0xd5], // arg: 1 = drag, 2 = drag lock, 3 = disabled
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_edge_scrolling": {
         "description": "Configure edge-scrolling",
         "args": { "1": "Vertical", "2": "Horizontal", "3": "Both", "4": "None"},
         "send": [0xd7], // arg: 1 = vertical, 2 = horizontal, 3 = vertical+horizontal, 4 = off
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_edge_scroll_config": {
         "description": "Edge-motion during edge-scroll",
         "args": { "1": "Free Scrolling", "2": "Edge Motion", "3": "Both", "4": "None"},
         "send": [0xd8], // arg: 1 = both directions, 2= continue scrolling at edge, 3 = both, 4 = disabled
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_slide_speed": {
         "description": "Set slide speed",
         "args": { "1": "Slowest", "5": "Fastest"},
         "send": [0xda], // arg: 1 = slow -> 5 = fast
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_edge_motion": {
         "description": "Configure edge-motion",
         "send": [0xdb], // arg: 1 = off, 2 = when dragging, 3 = dragging and pointing
         "args": { "1": "Off", "2": "When Dragging", "3": "Dragging and Pointing"},
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_edge_motion_speed": {
         "description": "Configure Edge-motion speed",
         "args": { "0": "Pressure Controlled", "1": "Slowest", "9": "Fastest"},
         "send": [0xe4], // arg: 0 = pressure_controlled, 1->9 slow->fast = on,
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_touch_sensitivity": {
         "description": "Set touchpad sensitivity",
         "args": { "1": "Lowest", "7": "Highest"},
         "send": [0xd6], // arg: 1=low, 7 = high,
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_palm_check": {
         "description": "Set palm-detection sensitivity",
         "args": { "1": "Lowest", "6": "Highest"},
         "send": [0xde], // arg: 1 = low, 6 = high
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_gestures_enabled": {
         "description": "Enable gesture detection",
         "send": [0xe3], // arg: 1 = on, 2 = off
         "args": { "1": "On", "2": "Off"},
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_tapdrag_delay": {
         "description": "Set tap & drag delay",
         "send": [0xcf], // arg: 0 = off, 1 = shortest, 8 = longest
         "args": { "0": "Off", "1": "Shortest", "8": "Longest"},
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_two_finger_scroll": {
         "description": "Enable two-finger scrolling gesture",
         "args": { "1": "Vertical", "2": "Horizontal", "3": "Both", "4": "Off"},
         "send": [0xd2], // arg: 1 = vertical, 2 = horizontal, 3 = both, 4 = off
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_two_finger_options": {
         "description": "Configure two-finger scrolling options",
         "args": { "1": "Free", "2": "Edge Motion On", "3": "Both", "4": "Off"},
         "send": [0xe5], // arg: 1 = free, 2 = edge_motion_on, 3 = both, 4 = off
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_left_edge_width": {
         "description": "Set Left-edge width",
         "args": { "0": "None", "1": "Thinnest", "7": "Widest"},
         "send": [0xdc], // arg: 0 = thin, 7 = wide
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_top_edge_height": {
         "description": "Set Top-edge height",
         "args": { "0": "None", "1": "Shortest", "7": "Tallest"},
         "send": [0xdd], // arg: 0 = short, 7 = tall
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_right_edge_width": {
         "description": "Set Right-edge width",
         "args": { "0": "None", "1": "Thinnest", "7": "Widest"},
         "send": [0xdf], // arg: 0 = thin, 7 = wide
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_bottom_edge_height": {
         "description": "Set bottom-edge height",
         "args": { "0": "None", "1": "Shortest", "7": "Tallest"},
         "send": [0xe1], // arg: 0 = short, 7 = tall
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_report_abs_pos": {
         "description": "Enable absolute position reporting",
         "args": { "0": "Off", "2": "On"},
         "send": [0xd1], // arg: 0 = off, 2 = on
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "byd_button_control": {
         "description": "Control how touchpad button is interpreted",
         "args": { "4": "Normal", "5": "Left as gesture", "6": "Right as gesture", "7": "Both as Gesture"},
         "send": [0xd0], // 4 == normal, 5 = left-as-gesture, 6 = right-as-gesture, 7 = both-corners-as-gesture
-        "expect": [0xFA]
+        "expect": [0xFA, 0xFA]
     },
     "raw": {
         "description": "Send a hex byte directly to pad",
