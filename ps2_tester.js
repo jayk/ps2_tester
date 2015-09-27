@@ -29,19 +29,13 @@
 var fs = require("fs");
 var readline = require("readline");
 var util = require("util");
-
-var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    completer: autocomplete_command
-});
-
 var fd, dev, write_dev;
-// var movement_mode = false;
 var debug_mode = false;
 var in_data = [];
 var last_send = Date.now(),
     last_received = Date.now() + 1;
+
+
 
 var device_file = process.argv[2];
 if (typeof device_file == "undefined") {
@@ -57,15 +51,13 @@ function debug(str) {
 
 function send_bytes(bytes, cb) {
     var buf = make_buffer(bytes);
-    //console.log("writing " + util.inspect(buf) + " to device");
-    // var f = fs.writeSync(fd, buf, 0, buf.length);
+
     var f = fs.write(fd, buf, 0, buf.length, function(err, written, string) {
         debug("TO_PAD: " + bytes_to_strings(bytes, 16, 2).join(" "));
         if (typeof cb == 'function') {
             cb();
         }
     });
-    //console.log("wrote " +f+" bytes");
 }
 
 var commands = {
@@ -444,14 +436,6 @@ function autocomplete_command(line) {
         if (help.args) {
             console.log("\n   " + new Array(hits[0].length).join(' ') + help.args);
         }
-
-        // if (hits[0].charAt(hits[0].length-1) != ' ') {
-        //     hits[0] += " ";
-        // }
-        // matching = matching + " ";
-        // console.log("'" + hits[0] + "'");
-        // console.log("'" + matching + "'");
-        // console.log(util.inspect(hits));
     }
     return [hits, matching];
 }
@@ -465,8 +449,6 @@ function resolve_command(command_name, args) {
     var cmd = {
         "command_name": command_name,
         "command": commands[command_name],
-        //"tree": [],
-        //"args": args,
         "to_send": [],
         "expect": [].concat(commands[command_name].expect),
         "received": []
@@ -487,9 +469,6 @@ function resolve_command(command_name, args) {
             res = resolve_command(new_cmd, args);
             cmd.to_send.push(res);
         }
-        // if (typeof args != 'undefined') {
-        //     cmd.to_send = cmd.to_send.concat(args);
-        // }
     });
     if (typeof args != 'undefined') {
         cmd.to_send = cmd.to_send.concat(args);
@@ -506,8 +485,6 @@ var command_stack = {
 function handle_command(command_name, args) {
     try {
         command_stack.root = resolve_command(command_name, args);
-        // console.log(util.inspect(command_stack.root, { depth: null }));
-        // return;
         command_stack.current_cmd = command_stack.root;
         command_stack.parent = [];
         next_cmd_step();
@@ -516,7 +493,6 @@ function handle_command(command_name, args) {
         console.error(e.stack);
         return;
     }
-    //console.log(util.inspect(command_stack, { depth: null }));
 }
 
 function next_cmd_step() {
@@ -527,13 +503,11 @@ function next_cmd_step() {
     var next_bit;
     debug('next command step: ' + util.inspect(current, {depth:null}));
     if (current.expect.length == 0 && current.to_send.length == 0) {
-        // finish command.  What does that mean?
         finished_command();
     } else {
         if (last_send < last_received) {
             // we have something to send.  What is it?
             next_bit = current.to_send.shift();
-            // console.log("sending: " + next_bit)
             if (typeof next_bit == 'number') {
                 if(current.received.length == 0) {
                     console.log("sending command: " + current.command_name + ": " + bytes_to_strings(current.to_send, 16, 2));
@@ -578,11 +552,8 @@ function new_data_received() {
     // If we have data, and we have a command
     if (typeof current != 'undefined') {
         failed_match = false;
-        // console.log('looking for: ' + util.inspect(current.expect));
         while (in_data.length > 0 && current.expect.length > 0 && failed_match == false) {
             if (current.expect[0] == in_data[0] || current.expect[0] == '*') {
-                // remove the first item because they match.
-                // console.log('match: ' + in_data[0] + " remaining: " + util.inspect(in_data));
                 current.expect.shift();
                 recvd_byte = in_data.shift();
                 current.received.push(recvd_byte);
@@ -606,12 +577,10 @@ function new_data_received() {
             return;
         } else {
             // we ran out of in_data... so we wait for more.
-            //console.log('waiting for more data: ' + console.log(current.expect));
             return;
         }
     } else if (in_data.length != 0) {
         if (in_data.length >= 1) {
-            //console.log('looking for data packets in ' + util.inspect(in_data));
             if (in_data[0] & 0x08 != 0x08) {
 
                 console.log('stream out of sync: ' + util.inspect(in_data));
@@ -626,41 +595,16 @@ function new_data_received() {
     }
 }
 
-fs.open(device_file, "r+", function(err, file_desc) {
-    if (err) {
-        throw err;
-    } else {
-        fd = file_desc;
-        dev = fs.createReadStream("ignored", {
-            "fd": fd
-        });
-
-        dev.on("data", function(chunk) {
-            var bytes = [];
-            var byte;
-            for (var i = 0; i < chunk.length; i++) {
-                byte = chunk.readUInt8(i);
-                bytes.push(byte);
-                in_data.push(byte);
-                //display_data(bytes, "FROM_PAD: ");
-            }
-
-            setTimeout(new_data_received, 0);
-        });
-    }
-});
 
 function display_data(data, prefix) {
     if (typeof prefix == 'undefined') {
         prefix = '';
     }
-    // clear();
     if (data.length) {
         data.forEach(function(item, index) {
             console.log("%s%d: %s %s", prefix, index, zero_pad(item, 16, 2), zero_pad(item, 2, 8));
         });
         console.log(" ");
-
     }
 }
 
@@ -681,7 +625,6 @@ function decode_ps2(bytes) {
 
     if (bytes[3]) {
         match = false;
-        // gesture / absolute thing
         for (var i = 0; i < gestures.length; i++) {
             if (bytes[3] == gestures[i].code) {
                 packet.gesture = gestures[i].gesture;
@@ -695,7 +638,6 @@ function decode_ps2(bytes) {
         packet.y_position = bytes[2];
 
     } else {
-        //console.log('Bytes: ' + bytes.length);
         packet.y_overflow = 0x80 & bytes[0];
         packet.x_overflow = 0x40 & bytes[0];
 
@@ -783,14 +725,38 @@ function help_for_command(cmd) {
     }
 }
 
+fs.open(device_file, "r+", function(err, file_desc) {
+    if (err) {
+        throw err;
+    } else {
+        fd = file_desc;
+        dev = fs.createReadStream("ignored", {
+            "fd": fd
+        });
+
+        dev.on("data", function(chunk) {
+            var bytes = [];
+            var byte;
+            for (var i = 0; i < chunk.length; i++) {
+                byte = chunk.readUInt8(i);
+                bytes.push(byte);
+                in_data.push(byte);
+            }
+
+            setTimeout(new_data_received, 0);
+        });
+    }
+});
+
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    completer: autocomplete_command
+});
+
 rl.setPrompt(">");
 rl.on("line", function(line) {
     var bytes, words, fail, command, things, help;
-    //console.log("you entered: " + line);
-    // if (line == "watch" || line == "w") {
-    //     console.log('Entering watch-for-movement mode');
-    //     movement_mode = true;
-    // } else
     words = line.split(/\s+/);
     command = words.shift();
     if (command == "") {
@@ -805,8 +771,6 @@ rl.on("line", function(line) {
     } else if (/show_data/i.test(command)) {
         console.log('in_data: ' + bytes_to_strings(in_data, 16, 2));
     } else if (/^help/i.test(command)) {
-        // words = line.split(/\s+/);
-
         things = Object.keys(commands);
         if (words.length != 0) {
             console.log('Usage: ');
@@ -828,28 +792,10 @@ rl.on("line", function(line) {
                 message += "        " + help.args + "\n";
             }
             console.log(message);
-            // var message = "    " + cmd;
-            // if (typeof commands[cmd] !== 'undefined') {
-            //     if (typeof commands[cmd].description !== 'undefined') {
-            //         message += " - " + commands[cmd].description + "\n";
-            //     }
-            //     if(typeof commands[cmd].args !== 'undefined') {
-            //         message += "        ("
-            //         var keys = Object.keys(commands[cmd].args);
-            //         keys.forEach(function(key) {
-            //             message += key + "=" + commands[cmd].args[key] + ' ';
-            //         });
-            //         message += ")\n"
-            //     }
-            //     console.log(message);
-            // } else {
-            //     console.log('unknown command')
-            // }
         });
         console.log("");
         rl.prompt();
     } else {
-        // movement_mode = false;
         fail = false;
         if (command.length == 2 && !isNaN(parseInt(command, 16))) {
             words.unshift(command);
@@ -866,8 +812,6 @@ rl.on("line", function(line) {
             }
         });
         if (!fail) {
-            // write bytes
-            //rl.pause();
             handle_command(command, bytes);
         }
     }

@@ -28,4 +28,32 @@ Once the device is in serio_raw mode, you can run the tester as:
 where /dev/serio_raw0 is the serio_raw device attached to the ps2 device.
 
 Help is available in the tool, simply type 'help' for a list of
-available commands
+available commands.
+
+Debugging sessions
+------------------
+
+Generally you want to begin a debugging session with a `reset`.  Once
+the device is reset, you want to run either `init_ps2` or `init_im`
+depending on your device.
+
+Your device may require special startup commands or a particular sequence
+of commands in order to correctly start up.  You can issue individual bytes
+to the hardware by simply entering `raw ` followed by the byte value you want
+to send in hex.  IE `raw e9` would manually send the ps2 'get status' command.
+If your device responds with additional bytes of information, you can see
+them with the `show_data` command.  If this is the case, be sure to flush
+the input buffer using the `flush` command before running other commands as
+data left in the input buffer will confuse the command response processor.
+
+If you need to see a bit more detail than is normally shown, you can use
+the `debug` command to toggle printing of the raw data going to and from
+the device, as well as other useful debugging information.
+
+This script is meant to be hacked on and adjusted to your needs. Specific
+decoding of data from touchpads is often vendor specific, so don't be afraid
+to adjust the decoding routines.
+
+Happy Hacking!
+
+Jay Kuri
